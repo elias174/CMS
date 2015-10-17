@@ -6,7 +6,7 @@ import os
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  
 
-class FlaskTestCase(unittest.TestCase):
+class RecoverAccountTestCase(unittest.TestCase):
    
     def setUp(self):
         app.config['TESTING'] = True
@@ -19,6 +19,10 @@ class FlaskTestCase(unittest.TestCase):
         db.create_all()
         return app
     
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        
     #if you need a test_user use this in your function
     def initialize_test_user(self):
         usertest = User.query.filter(User.username == 'Testuser').first()
@@ -46,6 +50,7 @@ class FlaskTestCase(unittest.TestCase):
     def test_init_recover_pass(self):
         tester = app.test_client(self)
         response = tester.get('/auth/recover_pass', content_type='html/text,',follow_redirects=True)
+        self.assertEqual(response.status_code, 302)
         self.assertIn(b'Recuperar Cuenta', response.data)
         
     #Testing the correct function of recover password
@@ -58,6 +63,7 @@ class FlaskTestCase(unittest.TestCase):
             data= data,
             follow_redirects=True
         )
+        self.assertEqual(response.status_code, 302)
         self.assertIn(b'Se ha enviado un correo a la direccion',response.data)
     
     def test_change_password_recover(self):
@@ -72,6 +78,7 @@ class FlaskTestCase(unittest.TestCase):
         response = tester.get(
             url,
             content_type='html/text,',follow_redirects=True)
+        self.assertEqual(response.status_code, 302)
         self.assertIn(b'Change Password',response.data)
         
         #Test functionality of Change Password
